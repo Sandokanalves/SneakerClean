@@ -34,6 +34,33 @@ public class UserService : IUserService
         return MapToDto(user);
     }
 
+    public async Task<UserDto?> UpdateAsync(Guid id, UpdateUserRequest request)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null) return null;
+
+        var existingWithEmail = await _userRepository.GetByEmailAsync(request.Email);
+        if (existingWithEmail != null && existingWithEmail.Id != id)
+            throw new InvalidOperationException($"Já existe um usuário com o e-mail '{request.Email}'.");
+
+        if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
+            throw new ArgumentException($"Perfil inválido: '{request.Role}'. Use 'Admin' ou 'Operador'.");
+
+        user.Update(request.Name, request.Email, role);
+        await _userRepository.UpdateAsync(user);
+        return MapToDto(user);
+    }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null) return false;
+
+        user.Deactivate();
+        await _userRepository.UpdateAsync(user);
+        return true;
+    }
+
     public async Task<UserDto?> GetByIdAsync(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);

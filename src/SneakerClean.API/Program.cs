@@ -1,4 +1,5 @@
 using System.Text;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -87,6 +88,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
+builder.Services.AddValidatorsFromAssemblyContaining<SneakerClean.Application.Validators.CreateCustomerRequestValidator>();
 
 // OpenAPI Nativo (.NET 10)
 builder.Services.AddOpenApi();

@@ -10,7 +10,7 @@ namespace SneakerClean.API.Controllers;
 [ApiController]
 [Route("api/orders")]
 [Authorize]
-public class OrdersController : ControllerBase
+public class OrdersController : ValidatedControllerBase
 {
     private readonly IOrderService _orderService;
     private readonly RabbitMqPublisher _rabbitMqPublisher;
@@ -41,6 +41,9 @@ public class OrdersController : ControllerBase
             Search = search
         };
 
+        var validation = await ValidateRequestAsync(filter);
+        if (validation != null) return validation;
+
         var orders = await _orderService.GetFilteredAsync(filter);
         return Ok(orders);
     }
@@ -62,10 +65,8 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
     {
-        if (request.CustomerId == Guid.Empty)
-            return BadRequest(new { message = "Cliente é obrigatório." });
-        if (request.Items == null || !request.Items.Any())
-            return BadRequest(new { message = "A OS deve ter pelo menos um item." });
+        var validation = await ValidateRequestAsync(request);
+        if (validation != null) return validation;
 
         try
         {
@@ -97,6 +98,9 @@ public class OrdersController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateOrderRequest request)
     {
+        var validation = await ValidateRequestAsync(request);
+        if (validation != null) return validation;
+
         try
         {
             var updated = await _orderService.UpdateAsync(id, request);
@@ -115,8 +119,8 @@ public class OrdersController : ControllerBase
     [HttpPatch("{id:guid}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateOrderStatusDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Status))
-            return BadRequest(new { message = "Status é obrigatório." });
+        var validation = await ValidateRequestAsync(dto);
+        if (validation != null) return validation;
 
         try
         {

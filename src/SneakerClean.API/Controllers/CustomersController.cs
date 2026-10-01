@@ -8,7 +8,7 @@ namespace SneakerClean.API.Controllers;
 [ApiController]
 [Route("api/customers")]
 [Authorize]
-public class CustomersController : ControllerBase
+public class CustomersController : ValidatedControllerBase
 {
     private readonly ICustomerService _customerService;
 
@@ -23,10 +23,8 @@ public class CustomersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCustomerRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name))
-            return BadRequest(new { message = "Nome é obrigatório." });
-        if (string.IsNullOrWhiteSpace(request.Phone))
-            return BadRequest(new { message = "Telefone/WhatsApp é obrigatório." });
+        var validation = await ValidateRequestAsync(request);
+        if (validation != null) return validation;
 
         try
         {
@@ -82,10 +80,8 @@ public class CustomersController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCustomerRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name))
-            return BadRequest(new { message = "Nome é obrigatório." });
-        if (string.IsNullOrWhiteSpace(request.Phone))
-            return BadRequest(new { message = "Telefone/WhatsApp é obrigatório." });
+        var validation = await ValidateRequestAsync(request);
+        if (validation != null) return validation;
 
         var customer = await _customerService.UpdateAsync(id, request);
         if (customer == null) return NotFound(new { message = "Cliente não encontrado." });

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using SneakerClean.Application.DTOs;
 using SneakerClean.Application.Interfaces;
 
@@ -8,7 +9,7 @@ namespace SneakerClean.API.Controllers;
 [ApiController]
 [Route("api/users")]
 [Authorize]
-public class UsersController : ControllerBase
+public class UsersController : ValidatedControllerBase
 {
     private readonly IUserService _userService;
 
@@ -24,14 +25,8 @@ public class UsersController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name))
-            return BadRequest(new { message = "Nome é obrigatório." });
-        if (string.IsNullOrWhiteSpace(request.Email))
-            return BadRequest(new { message = "E-mail é obrigatório." });
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
-            return BadRequest(new { message = "Senha deve ter ao menos 6 caracteres." });
-        if (string.IsNullOrWhiteSpace(request.Role))
-            return BadRequest(new { message = "Perfil (Role) é obrigatório. Use 'Admin' ou 'Operador'." });
+        var validation = await ValidateRequestAsync(request);
+        if (validation != null) return validation;
 
         try
         {
@@ -69,5 +64,47 @@ public class UsersController : ControllerBase
         var user = await _userService.GetByIdAsync(id);
         if (user == null) return NotFound(new { message = "Usuário não encontrado." });
         return Ok(user);
+    }
+
+    /// <summary>
+    /// Atualiza nome, e-mail e perfil de um usuário. Apenas Admins podem executar esta ação.
+    /// </summary>
+    [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserRequest request)
+    {
+        var validation = await ValidateRequestAsync(request);
+        if (validation != null) return validation;
+
+        try
+        {
+            var user = await _userService.UpdateAsync(id, request);
+            if (user == null) return NotFound(new { message = "Usuário não encontrado." });
+            return Ok(user);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Desativa um usuário. Apenas Admins podem executar esta ação.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var currentUserId)
+            && currentUserId == id)
+            return BadRequest(new { message = "Não é possível desativar o próprio usuário." });
+
+        var deleted = await _userService.DeleteAsync(id);
+        if (!deleted) return NotFound(new { message = "Usuário não encontrado." });
+        return NoContent();
     }
 }

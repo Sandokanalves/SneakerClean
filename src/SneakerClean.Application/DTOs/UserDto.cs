@@ -7,6 +7,12 @@ namespace SneakerClean.Application.DTOs
         string Role
     );
 
+    public record UpdateUserRequest(
+        string Name,
+        string Email,
+        string Role
+    );
+
     public record UserDto(
         Guid Id,
         string Name,

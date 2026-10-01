@@ -7,7 +7,7 @@ namespace SneakerClean.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController : ControllerBase
+public class AuthController : ValidatedControllerBase
 {
     private readonly IUserService _userService;
 
@@ -22,8 +22,8 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-            return BadRequest(new { message = "E-mail e senha são obrigatórios." });
+        var validation = await ValidateRequestAsync(request);
+        if (validation != null) return validation;
 
         var result = await _userService.AuthenticateAsync(request);
 

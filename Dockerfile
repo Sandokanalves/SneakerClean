@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
 # Copia as soluções e projetos
-COPY *.sln .
+COPY *.slnx .
 COPY src/SneakerClean.API/*.csproj src/SneakerClean.API/
 COPY src/SneakerClean.Application/*.csproj src/SneakerClean.Application/
 COPY src/SneakerClean.Domain/*.csproj src/SneakerClean.Domain/

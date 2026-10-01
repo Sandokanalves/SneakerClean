@@ -68,7 +68,13 @@ public class OrderRepository : IOrderRepository
 
     public async Task UpdateAsync(Order order)
     {
-        _context.Orders.Update(order);
+        foreach (var item in order.Items)
+        {
+            var itemEntry = _context.Entry(item);
+            if (itemEntry.State == EntityState.Detached)
+                itemEntry.State = EntityState.Added;
+        }
+
         await _context.SaveChangesAsync();
     }
 
