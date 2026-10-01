@@ -5,4 +5,7 @@
     <Project Path="src/SneakerClean.Domain/SneakerClean.Domain.csproj" />
     <Project Path="src/SneakerClean.Infrastructure/SneakerClean.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SneakerClean.Tests.Unit/SneakerClean.Tests.Unit.csproj" />
+  </Folder>
 </Solution>

@@ -2,11 +2,10 @@ namespace SneakerClean.Domain.Enums
 {
     public enum OrderStatus
     {
-        Received = 1,
-        InAssessment = 2,
-        InCleaning = 3,
-        ReadyForPickup = 4,
-        Delivered = 5,
-        Cancelled = 6
+        Open = 1,        // Aberta
+        InProgress = 2,  // Em Andamento
+        Completed = 3,   // Concluída
+        Cancelled = 4,   // Cancelada
+        Delivered = 5    // Entregue
     }
 }
