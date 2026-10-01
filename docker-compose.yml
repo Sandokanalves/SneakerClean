@@ -6,6 +6,14 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=SneakerCleanPass123!
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" -b"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - sqlserver-data:/var/opt/mssql
     ports:
       - "14333:1433"
     networks:
@@ -56,7 +64,7 @@ services:
       rabbitmq:
         condition: service_healthy
       sqlserver:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_started
     networks:
@@ -77,3 +85,6 @@ services:
 networks:
   sneakerclean-net:
     driver: bridge
+
+volumes:
+  sqlserver-data:
